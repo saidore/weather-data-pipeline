@@ -1,0 +1,74 @@
+# minio.yaml
+# Author information: Sai Dore
+# File deploys MinIO inside Kubernetes so pipeline has S3-style object storage available in cluster
+
+apiVersion: v1
+kind: PersistentVolumeClaim  # Request for storage in K8s
+metadata:
+  name: minio-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi  
+
+#Creates MinIO application pod and establishes runtime setup
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minio
+  labels:
+    app: minio
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: minio
+  template:
+    metadata:
+      labels:
+        app: minio
+    spec:  # Container that runs inside the pod
+      containers:
+        - name: minio
+          image: quay.io/minio/minio:latest
+          args:  # Runs MinIO in server mode, stores data in /data and Minio exposed on port 9001
+            - server
+            - /data
+            - --console-address
+            - ":9001"
+          ports:
+            - containerPort: 9000  # MinIO API endpoint
+            - containerPort: 9001  # MinIO web console
+          env:
+            - name: MINIO_ROOT_USER
+              value: "minioadmin"
+            - name: MINIO_ROOT_PASSWORD
+              value: "minioadmin"
+          volumeMounts:  # Mounts storage into container at path
+            - name: minio-storage
+              mountPath: /data
+      volumes:  # Links storage request to container
+        - name: minio-storage
+          persistentVolumeClaim:
+            claimName: minio-pvc
+
+# Creates Kubernetes service for MinIO
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio
+spec:
+  selector:
+    app: minio
+  ports:  # API and Console ports
+    - name: api
+      port: 9000
+      targetPort: 9000
+    - name: console
+      port: 9001
+      targetPort: 9001
+  type: ClusterIP

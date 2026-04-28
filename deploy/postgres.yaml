@@ -1,0 +1,66 @@
+# postgres.yaml
+# Author: Xitai
+# Deploys PostgreSQL inside Kubernetes as the serving layer for cleaned weather data
+
+apiVersion: v1
+kind: PersistentVolumeClaim  # Request storage for PostgreSQL data
+metadata:
+  name: postgres-data-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+
+# Creates PostgreSQL application pod
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-data
+  labels:
+    app: postgres-data
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-data
+  template:
+    metadata:
+      labels:
+        app: postgres-data
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16
+          ports:
+            - containerPort: 5432  # PostgreSQL default port
+          env:
+            - name: POSTGRES_USER
+              value: "weather_user"
+            - name: POSTGRES_PASSWORD
+              value: "weather_pass"
+            - name: POSTGRES_DB
+              value: "weather"
+          volumeMounts:
+            - name: postgres-storage
+              mountPath: /var/lib/postgresql/data  # Where Postgres stores its data
+      volumes:
+        - name: postgres-storage
+          persistentVolumeClaim:
+            claimName: postgres-data-pvc
+
+# Creates Kubernetes service so other pods can reach PostgreSQL at "postgres-data:5432"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-data
+spec:
+  selector:
+    app: postgres-data
+  ports:
+    - port: 5432
+      targetPort: 5432
+  type: ClusterIP

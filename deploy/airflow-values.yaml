@@ -1,0 +1,70 @@
+# airflow-values.yaml
+# Author: Zijiang Yang
+# Helm values file for deploy Airflow on Raspberry Pi K8s cluster.This file is NOT written from zero. It is our custom values for the official Apache Airflow Helm Chart. All field names come from the official chart's values.yaml reference: https://airflow.apache.org/docs/helm-chart/stable/parameters-ref.html
+
+# We only pick the fields we need and give them our own values.
+# Just like how people pass their own config to a library, not rewrite the library.
+
+# How to use this file:
+# helm repo add apache-airflow https://airflow.apache.org
+# helm install airflow apache-airflow/airflow -f deploy/airflow-values.yaml
+
+# Use LocalExecutor: run tasks inside the scheduler pod.
+# so we don't need multi worker distribute.
+executor: LocalExecutor
+
+
+# Use custom Airflow image. It is multi-arch so it works on arm64 Raspberry Pi directly.
+images:
+  airflow:
+    repository: localhost:32000/airflow-custom
+    tag: latest
+    pullPolicy: IfNotPresent
+
+extraPipPackages:
+  - requests
+  - pyyaml
+  - pymongo
+  - minio
+  - psycopg2-binary
+  - pandas
+  - pendulum
+
+
+# Don't load Airflow's example DAGs. We only want to see our own DAG in the UI.
+config:
+  core:
+    load_examples: "False"
+
+
+# GitSync: Airflow sidecar will git pull our repo every 60 second.
+# When team member push new DAG code to main branch, cluster auto update.
+# subPath tell Airflow where the DAGs folder is inside the repo.
+dags:
+  gitSync:
+    enabled: true
+    repo: "https://gitlab.oit.duke.edu/jpastorino/de-s26/student-teams/s26_ECE590D3_cb71e4e8.git"
+    branch: "main"
+    subPath: "PRJ/dags"        # Airflow scan this folder for DAG files
+    wait: 60                   # Pull every 60 seconds
+    credentialsSecret: git-credentials
+
+
+# Airflow Web UI setting.
+# ClusterIP means only accessible inside cluster.
+# To open UI from laptop, use: kubectl port-forward svc/airflow-webserver 8080:8080
+webserver:
+  defaultUser:
+    username: airflow
+    password: airflow
+  service:
+    type: ClusterIP
+
+
+# Disable services we don't need.
+# Flower is Celery monitoring UI. Redis is Celery broker.
+# Since we use LocalExecutor, both are not needed.
+flower:
+  enabled: false
+redis:
+  enabled: false
