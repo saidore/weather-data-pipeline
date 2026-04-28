@@ -1,0 +1,6 @@
+requests
+pyyaml
+pymongo
+minio
+psycopg2-binary
+pandas

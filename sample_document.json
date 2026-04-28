@@ -1,0 +1,33 @@
+{
+  "_author": "Xitai (reviseded by Zijiang)",
+  "_description": "Example structure of document which isstored in MongoDB by src/ingest.py. One document is one city + one year.",
+
+  "city": "Beijing",
+  "latitude": 39.9042,
+  "longitude": 116.4074,
+  "start_date": "2023-01-01",
+  "end_date": "2023-12-31",
+  "ingested_at": "2025-04-15T10:30:00Z",
+
+  "api_response": {
+    "latitude": 39.9,
+    "longitude": 116.4,
+    "elevation": 43.0,
+    "timezone": "Asia/Shanghai",
+    "timezone_abbreviation": "CST",
+    "utc_offset_seconds": 28800,
+    "generationtime_ms": 2.1,
+    "daily": {
+      "time": ["2023-01-01", "2023-01-02", "2023-01-03"],
+      "temperature_2m_mean": [-3.2, -1.8, 0.5],
+      "precipitation_sum": [0.0, 0.1, 2.3],
+      "wind_speed_10m_max": [12.5, 8.3, 15.0]
+    },
+    "daily_units": {
+      "time": "iso8601",
+      "temperature_2m_mean": "°C",
+      "precipitation_sum": "mm",
+      "wind_speed_10m_max": "km/h"
+    }
+  }
+}
