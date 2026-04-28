@@ -1,0 +1,54 @@
+# config.yaml
+# Author: Sai Dore
+
+# Cities to collect weather data for
+cities:
+  - name: Beijing
+    latitude: 39.9042
+    longitude: 116.4074
+  - name: New York
+    latitude: 40.7128
+    longitude: -74.0060
+  - name: London
+    latitude: 51.5074
+    longitude: -0.1278
+  - name: Durham
+    latitude: 35.9940
+    longitude: -78.9002
+
+# Weather variables to collect from the Open Meteo API (daily resolution)
+variables:
+  daily:
+    - temperature_2m_mean
+    - precipitation_sum
+    - wind_speed_10m_max
+
+# Time range to collect data (dates), auto detect timezone
+time_range:
+  start_date: "2023-01-01"
+  end_date: "2024-12-31"
+
+timezone: "auto"
+
+#MongoDB configuration, stores raw weather data 
+mongodb: 
+  host: "mongodb"
+  port: 27017
+  database: "weather_pipeline"
+  collection: "weather_raw"
+
+# PostgreSQL configuration for serving layer, stores cleaned and structured data
+postgres:
+  host: "postgres-data"
+  port: 5432
+  database: "weather"
+  user: "weather_user"
+  password: "weather_pass"
+
+# MinIO configuration, used as a backup and file-based storage layer to save raw files
+minio:
+  endpoint: "minio:9000"
+  access_key: "minioadmin"
+  secret_key: "minioadmin"
+  secure: false
+  bucket: "weather-raw"
